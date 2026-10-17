@@ -4,6 +4,8 @@ A browser game for learning HTTP status codes. Status names fall from the top of
 
 It covers 65 codes, from `100 Continue` to `511 Network Authentication Required`, plus three unofficial ones you will meet in real logs (`444`, `499`, `599`).
 
+![Status Drop mid-round: "Too Many Requests" and "Not Found" falling toward the hazard-striped floor, with the answer box below](thumbnail.png)
+
 ## Why it exists
 
 A customer writes in: "the API is broken." The first question is always the same: what status code did you get? A `401` and a `403` send you down completely different paths. So does a `502` versus a `504`.
