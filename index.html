@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Status Drop</title>
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-in">
+    <a href="#/" class="brand" id="brand" aria-label="Status Drop home"></a>
+    <nav class="tabs" aria-label="Main">
+      <a href="#/" data-route="home">Play</a>
+      <a href="#/learn" data-route="learn">Learn</a>
+      <a href="#/codes" data-route="codes">Codes</a>
+      <a href="#/history" data-route="history">History</a>
+    </nav>
+    <div class="bar-stats"><span>Best <b id="chipBest">0</b></span><span>Rounds <b id="chipRounds">0</b></span></div>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mmenu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mmenu" id="mmenu" hidden>
+    <nav aria-label="Main">
+      <a href="#/" data-route="home"><span class="mm-code">200</span>Play</a>
+      <a href="#/learn" data-route="learn"><span class="mm-code">301</span>Learn</a>
+      <a href="#/codes" data-route="codes"><span class="mm-code">404</span>Codes</a>
+      <a href="#/history" data-route="history"><span class="mm-code">304</span>History</a>
+    </nav>
+    <div class="mm-stats">
+      <div><small>Best</small><b id="mmBest">0</b></div>
+      <div><small>Rounds</small><b id="mmRounds">0</b></div>
+    </div>
+  </div>
+</header>
+
+<main id="view"></main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <nav class="foot-links" aria-label="Footer">
+      <span class="foot-brand">Status Drop</span>
+      <a href="#/about" data-route="about">About</a>
+      <a id="repoLink" hidden target="_blank" rel="noopener">Source on GitHub</a>
+    </nav>
+    <p class="foot-note">Your scores stay in this browser. Nothing is tracked.</p>
+  </div>
+</footer>
+
+<script src="index.js"></script>
+</body>
+</html>
