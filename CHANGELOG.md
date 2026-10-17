@@ -8,6 +8,7 @@ How Status Drop got from a one-screen prototype to its current form. Each entry 
 - **Added a footer** with the About link, a GitHub link, and a privacy note: scores stay in the browser, and nothing is tracked.
 - **Split the single file into `index.html`, `styles.css`, and `index.js`.** *Why:* separation of concerns. Structure, styling, and behavior each live in their own file, which makes the code easier to read and review.
 - **Renamed the page to `index.html` and added `netlify.toml`**, so the repo deploys to a static host with no build settings.
+- **Added a 404 page.** A "404 Not Found" sign drops onto the floor and tilts where it lands, with links back to the game and to the 404 entry in Codes. It reuses `styles.css` and loads it by absolute path, so it renders correctly at any broken URL depth.
 - **Removed the developer answer key** from the game screen. *Why:* it was only for testing the mechanics during development.
 - **Softened the definitions claim** to "based on RFC 9110 and related RFCs." *Why:* the definitions were written for the game, and "checked against" would claim a review that hadn't happened yet.
 

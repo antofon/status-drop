@@ -58,7 +58,7 @@ The look borrows from airport and highway wayfinding, because HTTP is full of tr
 
 ## Tech
 
-- Three files: `index.html` for structure, `styles.css` for the look, `index.js` for routing and the game. Plain HTML, CSS, and JavaScript. No framework, no build step, no dependencies beyond a Google Fonts stylesheet.
+- Three files: `index.html` for structure, `styles.css` for the look, `index.js` for routing and the game. Plus `404.html`, which Netlify serves for any path that doesn't exist. Plain HTML, CSS, and JavaScript. No framework, no build step, no dependencies beyond a Google Fonts stylesheet.
 - A small hash router (`#/learn`, `#/codes/404`) that routes from in-memory state, so links also work inside sandboxed previews and iframes.
 - The game loop runs on `requestAnimationFrame` with time-based movement, so speed stays consistent across frame rates. Paused time is excluded from "time survived."
 - Scores and settings save to `localStorage`, wrapped so the app still runs when storage is blocked.

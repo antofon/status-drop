@@ -349,3 +349,23 @@
     .log-row .hide-sm { display: none; }
     .face .prompt { font-size: 30px; }
   }
+
+  /* ---------- 404 page (404.html) ---------- */
+  .lost { max-width: 760px; margin: 0 auto; padding: 40px 20px 72px; text-align: center; }
+  .lost h1 { font-size: clamp(36px, 6vw, 56px); margin: 28px 0 12px; }
+  .lost .lede { margin: 0 auto; }
+  .lost-floor { position: relative; height: 210px; border-radius: var(--r-panel); overflow: hidden; border: 1px solid var(--line); background: linear-gradient(#F4F6F8, #DCE0E5); }
+  .lost-floor::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 12px; background: repeating-linear-gradient(135deg, var(--ink) 0 12px, var(--sign) 12px 24px); }
+  .lost-sign { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%) rotate(-4deg); display: inline-flex; align-items: baseline; gap: 14px; background: var(--sign); border-radius: var(--r-sign); padding: 14px 24px 9px; box-shadow: 0 2px 0 rgba(0,0,0,.35); white-space: nowrap; }
+  .lost-sign b { font-size: 44px; font-weight: 900; line-height: 1; }
+  .lost-sign span { font-size: 26px; font-weight: 800; }
+  @media (prefers-reduced-motion: no-preference) {
+    .lost-sign { animation: land .9s cubic-bezier(.5, 0, .75, 0) both, settle .35s ease-out .9s both; }
+  }
+  @keyframes land { from { bottom: 230px; transform: translateX(-50%) rotate(0deg); } to { bottom: 12px; transform: translateX(-50%) rotate(0deg); } }
+  @keyframes settle { from { transform: translateX(-50%) rotate(0deg); } 60% { transform: translateX(-50%) rotate(-6deg); } to { transform: translateX(-50%) rotate(-4deg); } }
+  .lost-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+  @media (max-width: 600px) {
+    .lost-floor { height: 170px; }
+    .lost-sign b { font-size: 34px; } .lost-sign span { font-size: 20px; }
+  }
