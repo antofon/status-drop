@@ -265,7 +265,10 @@ function flapBoard(animate) {
 }
 
 /* ---------- PLAY ---------- */
-const MAX_ACTIVE = 2, START_SPEED = 45, SPEED_STEP = 2.5, RESPAWN_MS = 500;
+const START_SPEED = 45, SPEED_STEP = 2.5, RESPAWN_MS = 500;
+// More blocks fall at once the longer you survive: [seconds survived, blocks at once].
+const CROWD = [[0, 2], [15, 3], [30, 4], [45, 5]];
+const crowdAt = seconds => CROWD.filter(([at]) => seconds >= at).pop()[1];
 let G = null, autoStart = false;
 
 function renderPlay() {
@@ -286,7 +289,7 @@ function renderPlay() {
                 <h2>${MODES[settings.mode]}</h2>
                 <p>${nameMode
                   ? "Codes fall. Type the full name before each one lands. Capitals don't matter. Spelling, hyphens, and apostrophes do."
-                  : "Names fall. Type the three-digit code before each one lands."} Two fall at a time. Three misses ends the round.</p>
+                  : "Names fall. Type the three-digit code before each one lands."} Two fall at first, and one more joins every 15 seconds you last, up to five. Three misses ends the round.</p>
                 <button class="btn" id="startBtn">Start</button>
               </div>
             </div>
@@ -361,7 +364,7 @@ function resumeGame() {
   document.getElementById("arena").classList.remove("is-paused");
   const input = document.getElementById("answer");
   input.disabled = false; input.focus();
-  for (let i = G.blocks.length; i < MAX_ACTIVE; i++) G.timers.push(setTimeout(spawn, 300 + i * 900));
+  for (let i = G.blocks.length; i < G.cap; i++) G.timers.push(setTimeout(spawn, 300 + i * 900));
   requestAnimationFrame(tick);
 }
 
@@ -379,7 +382,7 @@ function startGame() {
     // names take longer to type, so they fall slower and speed up gently
     speed: nameMode ? START_SPEED * 0.6 : START_SPEED,
     step: nameMode ? SPEED_STEP * 0.6 : SPEED_STEP,
-    last: 0, started: performance.now(), missed: [], timers: [],
+    last: 0, started: performance.now(), missed: [], timers: [], cap: crowdAt(0),
     pool: DIFFS[settings.diff], diff: settings.diff, mode: settings.mode
   };
   document.getElementById("overlay").style.display = "none";
@@ -400,7 +403,7 @@ function stopGame() {
 }
 
 function spawn() {
-  if (!G || !G.running || G.paused || G.blocks.length >= MAX_ACTIVE) return;
+  if (!G || !G.running || G.paused || G.blocks.length >= G.cap) return;
   const arena = document.getElementById("arena");
   const taken = new Set(G.blocks.map(b => b.code));
   const options = G.pool.filter(x => !taken.has(x.c));
@@ -409,10 +412,20 @@ function spawn() {
   el.className = G.mode === "name" ? "block num" : "block";
   el.textContent = G.mode === "name" ? String(pick.c) : pick.n;
   arena.appendChild(el);
-  const maxX = Math.max(arena.clientWidth - el.offsetWidth - 16, 16);
-  let x, tries = 0;
-  do { x = 16 + Math.random() * (maxX - 16); tries++; }
-  while (tries < 20 && G.blocks.some(b => Math.abs(b.x - x) < el.offsetWidth));
+  const w = el.offsetWidth, h = el.offsetHeight;
+  const maxX = Math.max(arena.clientWidth - w - 16, 16);
+  const overlaps = (b, x) => x < b.x + b.el.offsetWidth + 12 && b.x < x + w + 12;
+  const pickX = near => {
+    for (let i = 0; i < 20; i++) {
+      const x = 16 + Math.random() * (maxX - 16);
+      if (!G.blocks.some(b => b.y < near && overlaps(b, x))) return x;
+    }
+    return null;
+  };
+  // Spread out when there's room. Every block falls at the same speed, so otherwise it's
+  // enough to miss the blocks still near the top. No room at all: enter a moment later.
+  const x = pickX(Infinity) ?? pickX(h);
+  if (x === null) { el.remove(); G.timers.push(setTimeout(spawn, 400)); return; }
   const b = { code: pick.c, name: pick.n, el, x, y: -el.offsetHeight };
   place(b);
   G.blocks.push(b);
@@ -436,6 +449,8 @@ function tick(t) {
   if (!G || !G.running || G.paused) return;
   const dt = G.last ? (t - G.last) / 1000 : 0;
   G.last = t;
+  const cap = crowdAt((performance.now() - G.started) / 1000);
+  if (cap > G.cap) { G.cap = cap; spawn(); }
   const floor = document.getElementById("arena").clientHeight - 10;
   for (const b of [...G.blocks]) {
     b.y += G.speed * dt;

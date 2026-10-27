@@ -1,6 +1,13 @@
 # Changelog
 
-How Status Drop got from a one-screen prototype to its current form. Each entry says what changed and why. All work happened on 2026-10-17.
+How Status Drop got from a one-screen prototype to its current form. Each entry says what changed and why. Versions 0.1 through 1.0 all happened on 2026-10-17.
+
+## 1.1: More blocks the longer you last
+
+Added on 2026-10-27.
+
+- **The number of falling blocks now grows with time survived.** Two fall at first, then one more joins at 15, 30, and 45 seconds, up to five at once. Paused time doesn't count. *Why:* with two at most, the round never got busy, even late in a run.
+- **A new block only has to miss the blocks still near the top.** *Why:* every block falls at the same speed, so two that start apart never meet. Five don't fit side by side on a phone, so a block with no clear spot waits a moment and enters right after the one ahead of it.
 
 ## 1.0: Ready to ship
 
