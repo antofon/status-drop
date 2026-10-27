@@ -2,6 +2,18 @@
 
 How Status Drop got from a one-screen prototype to its current form. Each entry says what changed and why. Versions 0.1 through 1.0 all happened on 2026-10-17.
 
+## 1.2: Built for phones and tablets
+
+Added on 2026-10-27.
+
+- **Added a built-in number pad to Type the code on touch screens.** *Why:* on a phone, tapping the answer box opened the keyboard, and the page slid up until only the bottom third of the arena showed. New blocks enter at the top, so they were hidden. The pad replaces the phone's keyboard, so the arena, the score, and the pad fit on one screen.
+  - Phones get a 3 by 4 dial pad. Tablets get one row of keys under the arena and otherwise keep the desktop layout.
+  - It still clears the moment three digits match, and a hardware keyboard still works.
+- **Type the name fits the arena above the keyboard.** Names need the phone's keyboard, so the play screen now measures the space left above it and fits into that. When space is tight, the level line and the hint hide.
+- **The round fills the screen on touch devices.** The header and footer hide during play. "Change" and the pause menu still lead out.
+- **A block takes the same time to land on every screen.** The touch layout gives the arena whatever height is left, so the fall is scaled to that height. Blocks also keep their progress when the arena resizes mid-round, for example when the keyboard opens or the phone rotates.
+- Desktop is unchanged.
+
 ## 1.1: More blocks the longer you last
 
 Added on 2026-10-27.
