@@ -17,10 +17,11 @@ Reading that code correctly is the fastest way to a fix. Status Drop turns that 
 ### Play
 - **Two modes.** *Type the code:* a name falls, you type its three digits. *Type the name:* a code falls, you spell out its name.
 - **Three levels.** Easy (18 common codes), Medium (32), Hard (all 65). Levels stack, so Hard includes everything.
-- **Two blocks fall at a time.** A block that hits the floor costs a life. Three lives per round.
+- **More blocks the longer you last.** Two fall at first, and one more joins every 15 seconds, up to five at once. A block that hits the floor costs a life. Three lives per round.
 - **Speed builds.** Each correct answer makes the next blocks fall a little faster.
 - **No Enter key.** A block clears the moment your answer matches.
 - **Name mode is strict on spelling, loose on case.** Capitals don't matter. Spelling, hyphens, and apostrophes do. The input border turns red as soon as your text can no longer match any falling name.
+- **Built for touch.** On phones and tablets, the round fills the screen. *Type the code* gets a built-in number pad, so the on-screen keyboard never covers the blocks: a 3 by 4 dial pad on phones, one row of keys on tablets. *Type the name* fits the arena into the space above the keyboard. A hardware keyboard still works.
 - **Pause anytime.** The pause button or `Esc` freezes and blurs the blocks. Resume, start over, or quit to home.
 - **Results screen.** Score, personal best, rank among your own rounds, time survived, average time per code, and every code that hit the floor.
 

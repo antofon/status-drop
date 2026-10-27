@@ -183,6 +183,7 @@ document.addEventListener("click", e => {
 });
 function route() {
   stopGame();
+  touchPlay(false);
   countdownTimers.forEach(t => { clearTimeout(t); clearInterval(t); }); countdownTimers = [];
   document.removeEventListener("keydown", cardKeys);
   const parts = (current.replace(/^#\/?/, "") || "home").split("/");
@@ -264,18 +265,68 @@ function flapBoard(animate) {
   });
 }
 
+/* ---------- PHONES AND TABLETS ---------- */
+// On a touch screen the on-screen keyboard covers the arena. During play the play view fills
+// the visible screen instead: type the code gets a built-in keypad, so the keyboard never
+// opens, and type the name fits the arena into the space left above the keyboard.
+const TOUCH = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+const keypadOn = () => TOUCH && settings.mode === "code";
+const BACK_ICON = `<svg viewBox="0 0 32 24" width="30" height="22" aria-hidden="true"><path d="M10 2h19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H10L2 12z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M15 8l8 8M23 8l-8 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+let playRefH = 0;
+
+function fitPlay() {
+  if (!document.body.classList.contains("touch-play")) return;
+  const vv = window.visualViewport;
+  const h = vv ? vv.height : window.innerHeight;
+  document.documentElement.style.setProperty("--vvh", `${h}px`);
+  document.documentElement.style.setProperty("--vvt", `${vv ? vv.offsetTop : 0}px`);
+  view.classList.toggle("tight", h < 520);   // keyboard open: drop the label line and the hint
+}
+function touchPlay(on) {
+  document.body.classList.toggle("touch-play", on);
+  view.classList.remove("tight");
+  if (!on) return;
+  // the arena's height in the regular layout (see .arena in styles.css). The fitted arena
+  // fills whatever space is left, and its fall is scaled to keep the same time from top to floor.
+  const phone = window.matchMedia("(max-width: 600px)").matches;
+  playRefH = Math.max(window.innerHeight * (phone ? 0.48 : 0.62), phone ? 320 : 420);
+  fitPlay();
+}
+if (window.visualViewport) {
+  visualViewport.addEventListener("resize", fitPlay);
+  visualViewport.addEventListener("scroll", fitPlay);
+}
+window.addEventListener("resize", fitPlay);
+
+function padPress(key) {
+  if (!G || !G.running || G.paused) return;
+  const input = document.getElementById("answer");
+  if (input.classList.contains("wrong")) return;   // let the wrong-guess shake finish first
+  input.value = key === "back" ? input.value.slice(0, -1) : (input.value + key).slice(0, 3);
+  onAnswer({ target: input });
+}
+// a hardware keyboard still works when the keypad is up
+document.addEventListener("keydown", e => {
+  if (!keypadOn() || !G || !G.running || G.paused || e.metaKey || e.ctrlKey) return;
+  if (/^\d$/.test(e.key)) padPress(e.key);
+  else if (e.key === "Backspace") padPress("back");
+});
+
 /* ---------- PLAY ---------- */
-const MAX_ACTIVE = 2, START_SPEED = 45, SPEED_STEP = 2.5, RESPAWN_MS = 500;
+const START_SPEED = 45, SPEED_STEP = 2.5, RESPAWN_MS = 500;
+// More blocks fall at once the longer you survive: [seconds survived, blocks at once].
+const CROWD = [[0, 2], [15, 3], [30, 4], [45, 5]];
+const crowdAt = seconds => CROWD.filter(([at]) => seconds >= at).pop()[1];
 let G = null, autoStart = false;
 
 function renderPlay() {
   const nameMode = settings.mode === "name";
   view.innerHTML = `
-    <div class="page">
+    <div class="page play">
       <div class="play-top">
         <h1 class="what">${settings.diff}, ${MODES[settings.mode].toLowerCase()} <a href="#/">Change</a></h1>
       </div>
-      <div>
+      <div class="play-main">
           <div class="scoreline">
             <div class="lights" id="lights" role="img" aria-label="3 lives left"><span class="light"></span><span class="light"></span><span class="light"></span></div>
             <div class="score-side"><button class="pause" id="pauseBtn" aria-label="Pause" title="Pause (Esc)" disabled><span></span><span></span></button><div class="score">Score <b id="score">0</b></div></div>
@@ -286,19 +337,31 @@ function renderPlay() {
                 <h2>${MODES[settings.mode]}</h2>
                 <p>${nameMode
                   ? "Codes fall. Type the full name before each one lands. Capitals don't matter. Spelling, hyphens, and apostrophes do."
-                  : "Names fall. Type the three-digit code before each one lands."} Two fall at a time. Three misses ends the round.</p>
+                  : "Names fall. Type the three-digit code before each one lands."} Two fall at first, and one more joins every 15 seconds you last, up to five. Three misses ends the round.</p>
                 <button class="btn" id="startBtn">Start</button>
               </div>
             </div>
           </div>
           <div class="answer-row">${nameMode
             ? `<input id="answer" class="wide" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Type the name" aria-label="Your answer" disabled>`
-            : `<input id="answer" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="000" aria-label="Your answer" disabled>`}</div>
+            : `<input id="answer" ${keypadOn() ? 'inputmode="none" readonly' : 'inputmode="numeric"'} maxlength="3" autocomplete="off" placeholder="000" aria-label="Your answer" disabled>`}</div>
+          ${keypadOn() ? `<div class="keypad" role="group" aria-label="Number pad">
+            ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(n => `<button type="button" data-key="${n}">${n}</button>`).join("")}
+            <button type="button" data-key="back" aria-label="Delete">${BACK_ICON}</button>
+          </div>` : ""}
           ${nameMode ? `<p class="hint">It clears as soon as the name is right. Press Enter to wipe a wrong guess.</p>` : ""}
       </div>
     </div>`;
   document.getElementById("startBtn").onclick = countdown;
-  document.getElementById("arena").onclick = () => { if (G && G.running) document.getElementById("answer").focus(); };
+  document.getElementById("arena").onclick = () => { if (G && G.running && !keypadOn()) document.getElementById("answer").focus(); };
+  const pad = view.querySelector(".keypad");
+  if (pad) pad.addEventListener("click", e => {
+    const key = e.target.closest("[data-key]");
+    if (!key) return;
+    key.classList.add("down"); setTimeout(() => key.classList.remove("down"), 120);
+    padPress(key.dataset.key);
+  });
+  touchPlay(TOUCH);
   const input = document.getElementById("answer");
   input.addEventListener("input", onAnswer);
   input.addEventListener("keydown", e => {
@@ -360,8 +423,9 @@ function resumeGame() {
   G.last = 0;                                      // no jump in the first frame back
   document.getElementById("arena").classList.remove("is-paused");
   const input = document.getElementById("answer");
-  input.disabled = false; input.focus();
-  for (let i = G.blocks.length; i < MAX_ACTIVE; i++) G.timers.push(setTimeout(spawn, 300 + i * 900));
+  input.disabled = false;
+  if (!keypadOn()) input.focus();
+  for (let i = G.blocks.length; i < G.cap; i++) G.timers.push(setTimeout(spawn, 300 + i * 900));
   requestAnimationFrame(tick);
 }
 
@@ -379,13 +443,15 @@ function startGame() {
     // names take longer to type, so they fall slower and speed up gently
     speed: nameMode ? START_SPEED * 0.6 : START_SPEED,
     step: nameMode ? SPEED_STEP * 0.6 : SPEED_STEP,
-    last: 0, started: performance.now(), missed: [], timers: [],
+    last: 0, started: performance.now(), missed: [], timers: [], cap: crowdAt(0),
+    refH: TOUCH ? playRefH : 0, arenaH: 0,
     pool: DIFFS[settings.diff], diff: settings.diff, mode: settings.mode
   };
   document.getElementById("overlay").style.display = "none";
   document.getElementById("pauseBtn").disabled = false;
   const input = document.getElementById("answer");
-  input.disabled = false; input.value = ""; input.focus();
+  input.disabled = false; input.value = "";
+  if (!keypadOn()) input.focus();
   spawn();
   G.timers.push(setTimeout(spawn, 1400));
   requestAnimationFrame(tick);
@@ -400,7 +466,7 @@ function stopGame() {
 }
 
 function spawn() {
-  if (!G || !G.running || G.paused || G.blocks.length >= MAX_ACTIVE) return;
+  if (!G || !G.running || G.paused || G.blocks.length >= G.cap) return;
   const arena = document.getElementById("arena");
   const taken = new Set(G.blocks.map(b => b.code));
   const options = G.pool.filter(x => !taken.has(x.c));
@@ -409,10 +475,20 @@ function spawn() {
   el.className = G.mode === "name" ? "block num" : "block";
   el.textContent = G.mode === "name" ? String(pick.c) : pick.n;
   arena.appendChild(el);
-  const maxX = Math.max(arena.clientWidth - el.offsetWidth - 16, 16);
-  let x, tries = 0;
-  do { x = 16 + Math.random() * (maxX - 16); tries++; }
-  while (tries < 20 && G.blocks.some(b => Math.abs(b.x - x) < el.offsetWidth));
+  const w = el.offsetWidth, h = el.offsetHeight;
+  const maxX = Math.max(arena.clientWidth - w - 16, 16);
+  const overlaps = (b, x) => x < b.x + b.el.offsetWidth + 12 && b.x < x + w + 12;
+  const pickX = near => {
+    for (let i = 0; i < 20; i++) {
+      const x = 16 + Math.random() * (maxX - 16);
+      if (!G.blocks.some(b => b.y < near && overlaps(b, x))) return x;
+    }
+    return null;
+  };
+  // Spread out when there's room. Every block falls at the same speed, so otherwise it's
+  // enough to miss the blocks still near the top. No room at all: enter a moment later.
+  const x = pickX(Infinity) ?? pickX(h);
+  if (x === null) { el.remove(); G.timers.push(setTimeout(spawn, 400)); return; }
   const b = { code: pick.c, name: pick.n, el, x, y: -el.offsetHeight };
   place(b);
   G.blocks.push(b);
@@ -436,9 +512,18 @@ function tick(t) {
   if (!G || !G.running || G.paused) return;
   const dt = G.last ? (t - G.last) / 1000 : 0;
   G.last = t;
-  const floor = document.getElementById("arena").clientHeight - 10;
+  const cap = crowdAt((performance.now() - G.started) / 1000);
+  if (cap > G.cap) { G.cap = cap; spawn(); }
+  const h = document.getElementById("arena").clientHeight;
+  // the arena can change height mid-round (keyboard opening, rotation): keep each block's progress
+  if (G.arenaH && h !== G.arenaH) G.blocks.forEach(b => { b.y *= h / G.arenaH; });
+  G.arenaH = h;
+  // on touch screens the arena fills the space left, so scale the fall: a block takes as long
+  // to land as it would in the regular layout
+  const k = G.refH ? h / G.refH : 1;
+  const floor = h - 10;
   for (const b of [...G.blocks]) {
-    b.y += G.speed * dt;
+    b.y += G.speed * k * dt;
     place(b);
     if (b.y + b.el.offsetHeight >= floor) {
       G.missed.push(b.code);
@@ -497,6 +582,8 @@ function endGame() {
 }
 
 function renderResults(r, prevBest) {
+  touchPlay(false);
+  window.scrollTo(0, 0);
   const isNew = r.score > prevBest && r.score > 0;
   const same = rounds.filter(x => x.diff === r.diff && modeOf(x) === r.mode);
   const rank = [...same].sort((a, b) => b.score - a.score).indexOf(r) + 1;
