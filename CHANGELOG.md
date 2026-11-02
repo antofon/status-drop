@@ -2,6 +2,15 @@
 
 How Status Drop got from a one-screen prototype to its current form. Each entry says what changed and why. Versions 0.1 through 1.0 all happened on 2026-10-17.
 
+## 1.2.1: Flashcard progress counts the real deck
+
+Added on 2026-11-02.
+
+- **The progress bar fills to the end when you finish a deck.** It shows the cards you've marked "Got it" out of the cards in the deck. *Why:* "Still learning" puts a card back at the end of the deck, and the bar counted every repeat as an extra card. Finishing Common after a few retries left the bar a third full next to "Deck finished."
+- **The line under the card says how many you know and how many are coming back,** for example "7 of 18 known, 3 coming back." *Why:* it used to say "Card 11 of 21" on an 18-card deck, because repeats were counted toward the total.
+- **The finish screen counts your retries,** for example "18 of 18 known on Common. 4 retries along the way."
+- **A class deck's chip keeps its real size.** Like the bar, it used to grow with every retry.
+
 ## 1.2: Built for phones and tablets
 
 Added on 2026-10-27.

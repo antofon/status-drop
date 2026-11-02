@@ -26,7 +26,7 @@ Reading that code correctly is the fastest way to a fix. Status Drop turns that 
 - **Results screen.** Score, personal best, rank among your own rounds, time survived, average time per code, and every code that hit the floor.
 
 ### Learn
-- **Flashcards with a 3D flip.** Click, tap, or press `Space` to flip. Press `1` for still learning (the card comes back later) or `2` for got it.
+- **Flashcards with a 3D flip.** Click, tap, or press `Space` to flip. Press `1` for still learning (the card comes back later) or `2` for got it. The bar and the line under the card show how many you know and how many are coming back.
 - **Four decks that don't overlap:** Common (18), Less common (14), Rare (33), and Misses, which is built from every code that hit the floor in your rounds.
 - **Class decks.** Every class on the Codes page has a "Practice these" button that opens a deck for just that class.
 - **Name first or code first**, so you can drill in either direction.

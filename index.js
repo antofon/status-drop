@@ -664,7 +664,8 @@ function renderDetail(code) {
 }
 
 /* ---------- LEARN ---------- */
-let deck = [], card = 0, flipped = false, deckName = "Common", known = 0, front = "name";
+// "Still learning" pushes the card onto the end, so deck.length grows with retries. total stays the real card count.
+let deck = [], total = 0, card = 0, flipped = false, deckName = "Common", known = 0, front = "name";
 
 function missedCodes() {
   const counts = {};
@@ -686,7 +687,7 @@ function buildDeck(name) {
     : /^\dxx$/.test(name) ? CODES.filter(x => cls(x.c) === Number(name[0]))
     : STUDY[name];
   deck = [...src].sort(() => Math.random() - .5);
-  card = 0; flipped = false; known = 0;
+  total = deck.length; card = 0; flipped = false; known = 0;
 }
 
 function renderLearn() {
@@ -700,7 +701,7 @@ function renderLearn() {
       <div class="deck-tools" id="drill">
         <div class="seg wrap" role="group" aria-label="Deck">
           ${DECKS.map(d => `<button class="${deckName === d ? "on" : ""}" data-deck="${d}">${d} <span class="cnt">${deckSize(d)}</span></button>`).join("")}
-          ${/^\dxx$/.test(deckName) ? `<button class="on" data-deck="Common" aria-label="Stop studying ${deckName}, back to Common">${deckName} ${CLASS_BY_K[deckName[0]].label.toLowerCase()} <span class="cnt">${deck.length}</span> &times;</button>` : ""}
+          ${/^\dxx$/.test(deckName) ? `<button class="on" data-deck="Common" aria-label="Stop studying ${deckName}, back to Common">${deckName} ${CLASS_BY_K[deckName[0]].label.toLowerCase()} <span class="cnt">${total}</span> &times;</button>` : ""}
         </div>
         <div class="seg" role="group" aria-label="Show first">
           <button class="${front === "name" ? "on" : ""}" data-front="name">Name first</button>
@@ -731,16 +732,19 @@ function drawCard(entering) {
   const wrap = document.getElementById("cardWrap");
   const prog = document.getElementById("prog");
   if (!wrap) return;
-  prog.style.width = deck.length ? `${Math.min(known / deck.length, 1) * 100}%` : "0";
+  prog.style.width = total ? `${known / total * 100}%` : "0";
   if (!deck.length) {
     wrap.innerHTML = `<div class="flipcard"><div class="inner"><div class="face"><p class="prompt" style="font-size:26px">No misses yet</p><p>Codes that hit the floor in a round land here. <a href="#/">Play a round</a>.</p></div></div></div>`;
     return;
   }
+  const retries = deck.length - total;
   if (card >= deck.length) {
-    wrap.innerHTML = `<div class="flipcard"><div class="inner"><div class="face"><p class="prompt">Deck finished</p><p>You marked ${known} cards as known on ${deckName}.</p><button class="btn" id="redo">Shuffle and go again</button></div></div></div>`;
+    wrap.innerHTML = `<div class="flipcard"><div class="inner"><div class="face"><p class="prompt">Deck finished</p><p>${known} of ${total} known on ${deckName}. ${retries ? `${retries} ${retries === 1 ? "retry" : "retries"} along the way.` : "No retries needed."}</p><button class="btn" id="redo">Shuffle and go again</button></div></div></div>`;
     document.getElementById("redo").onclick = () => { buildDeck(deckName); drawCard(true); };
     return;
   }
+  // retries queued behind this card (on the first pass, all of them)
+  const back = deck.length - Math.max(card + 1, total);
   const x = deck[card];
   const nameFace = `<span class="prompt">${x.n}</span>`;
   const codeFace = `<span class="chip k${cls(x.c)}" style="font-size:64px;padding:12px 20px 6px;border-radius:10px">${x.c}</span>`;
@@ -759,7 +763,7 @@ function drawCard(entering) {
       <button class="btn quiet" id="again2">Still learning</button>
       <button class="btn" id="got">Got it</button>
     </div>
-    <p class="kbd">Card ${card + 1} of ${deck.length}. <kbd>Space</kbd> flips, <kbd>1</kbd> still learning, <kbd>2</kbd> got it.</p>`;
+    <p class="kbd">${known} of ${total} known${back ? `, ${back} coming back` : ""}. <kbd>Space</kbd> flips, <kbd>1</kbd> still learning, <kbd>2</kbd> got it.</p>`;
   document.getElementById("fc").onclick = flip;
   document.getElementById("got").onclick = () => nextCard(true);
   document.getElementById("again2").onclick = () => nextCard(false);
